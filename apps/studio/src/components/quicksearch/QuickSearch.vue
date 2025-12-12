@@ -144,7 +144,7 @@ import { mapGetters, mapState } from 'vuex'
 import { AppEvent } from '@/common/AppEvent'
 import TableIcon from '@/components/common/TableIcon.vue'
 import { escapeHtml } from '@shared/lib/tabulator'
-import { searchItems } from '@/store/modules/SearchModule'
+import { searchItems, SearchResult } from '@/store/modules/SearchModule'
 export default Vue.extend({
   components: { TableIcon },
   mounted() {
@@ -215,13 +215,22 @@ export default Vue.extend({
   methods: {
     async getTabHistory() {
       const results = await Vue.prototype.$util.send('appdb/tabhistory/get', { workspaceId: this.usedConfig.workspaceId, connectionId: this.usedConfig.id });
-      this.historyResults = results 
+      this.historyResults = results
     },
-    highlight(blob) {
-      const dangerous = blob.title
-      const text = escapeHtml(dangerous || "unknown item")
-      const regex = new RegExp(this.searchTerm.split(/\s+/).filter((i) => i?.length).join("|"), 'gi')
-      const result = text.replace(regex, (match) => `<strong>${match}</strong>`)
+    highlight(blob: SearchResult) {
+      const title = blob.title || "unknown item"
+      const ranges = blob.highlightRanges || []
+
+      let result = ''
+      let cursor = 0
+
+      for (const [start, end] of ranges) {
+        result += escapeHtml(title.slice(cursor, start)) ?? title.slice(cursor, start)
+        result += `<strong>${escapeHtml(title.slice(start, end + 1)) ?? title.slice(start, end + 1)}</strong>`
+        cursor = end + 1
+      }
+
+      result += escapeHtml(title.slice(cursor)) ?? title.slice(cursor)
 
       return result
     },
@@ -309,7 +318,7 @@ export default Vue.extend({
       let result = this.results[this.selectedItem]
       if (!this.results.length && !this.searchTerm && this.historyResults.length) {
         result = this.historyResults[this.selectedItem]
-        this.handleHistoryClick(_, result) 
+        this.handleHistoryClick(_, result)
       } else {
         this.submit(result)
       }
@@ -318,7 +327,7 @@ export default Vue.extend({
       let result = this.results[this.selectedItem]
       if (!this.results.length && !this.searchTerm && this.historyResults.length) {
         result = this.historyResults[this.selectedItem]
-        this.handleHistoryClick(_, result) 
+        this.handleHistoryClick(_, result)
       } else {
         this.submitAlt(result)
       }
