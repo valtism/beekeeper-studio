@@ -144,7 +144,7 @@ import { mapGetters, mapState } from 'vuex'
 import { AppEvent } from '@/common/AppEvent'
 import TableIcon from '@/components/common/TableIcon.vue'
 import { escapeHtml } from '@shared/lib/tabulator'
-import { searchItems, SearchResult } from '@/store/modules/SearchModule'
+import { searchItems } from '@/store/modules/SearchModule'
 export default Vue.extend({
   components: { TableIcon },
   mounted() {
